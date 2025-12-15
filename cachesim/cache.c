@@ -20,9 +20,8 @@ static size_t group_lines;
 
 uint32_t cache_read(uintptr_t addr) {
   uintptr_t tag = addr >> tag_start;
-  struct cache_line *empty = NULL,
-                    *group =
-                        cache[(addr & mask_with_len(tag_start)) >> BLOCK_WIDTH];
+  size_t group_rank = (addr & mask_with_len(tag_start)) >> BLOCK_WIDTH;
+  struct cache_line *empty = NULL, *group = cache[group_rank];
   for (struct cache_line *line = group + group_lines; line-- > group;)
     if (!line->valid)
       empty = line;
@@ -31,7 +30,7 @@ uint32_t cache_read(uintptr_t addr) {
   if (!empty) {
     empty = group + (rand() & (group_lines - 1));
     if (empty->dirty)
-      mem_write(empty->tag << (tag_start - BLOCK_WIDTH),
+      mem_write(empty->tag << (tag_start - BLOCK_WIDTH) | group_rank,
                 (uint8_t *)empty->data);
   }
   mem_read(addr >> BLOCK_WIDTH, (uint8_t *)empty->data);
@@ -43,9 +42,8 @@ uint32_t cache_read(uintptr_t addr) {
 
 void cache_write(uintptr_t addr, uint32_t data, uint32_t wmask) {
   uintptr_t tag = addr >> tag_start;
-  struct cache_line *empty = NULL,
-                    *group =
-                        cache[(addr & mask_with_len(tag_start)) >> BLOCK_WIDTH];
+  size_t group_rank = (addr & mask_with_len(tag_start)) >> BLOCK_WIDTH;
+  struct cache_line *empty = NULL, *group = cache[group_rank];
   for (struct cache_line *line = group + group_lines; line-- > group;)
     if (!line->valid)
       empty = line;
@@ -58,7 +56,7 @@ void cache_write(uintptr_t addr, uint32_t data, uint32_t wmask) {
   if (!empty) {
     empty = group + (rand() & (group_lines - 1));
     if (empty->dirty)
-      mem_write(empty->tag << (tag_start - BLOCK_WIDTH),
+      mem_write(empty->tag << (tag_start - BLOCK_WIDTH) | group_rank,
                 (uint8_t *)empty->data);
   }
   mem_read(addr >> BLOCK_WIDTH, (uint8_t *)empty->data);
