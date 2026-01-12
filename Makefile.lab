@@ -1,7 +1,7 @@
 # **DO NOT MODIFY**
 
-export COURSE := ICS2022
-URL := 'http://why.ink:8080/static/submit-icslab.sh'
+export COURSE := ICS2025
+URL := 'http://118.89.179.200:8080/static/submit-icslab.sh'
 
 submit:
 	@cd $(dir $(abspath $(lastword $(MAKEFILE_LIST)))) && \
